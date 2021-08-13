@@ -5,7 +5,7 @@ use crate::registers::{IndexRegister, IndexX, IndexY};
 // TODO: Stack operations
 
 pub(crate) struct Memory {
-  pub inner: [u8; 64000],
+  inner: [u8; 64000],
 }
 
 impl Memory {

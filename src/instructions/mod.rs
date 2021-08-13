@@ -40,6 +40,8 @@ impl<T: ADCAddressMode> Instruction for ADC<T> {
 
     let carry = if registers.flags.carry { 1 } else { 0 };
     registers.acc.value += value + carry;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -59,6 +61,8 @@ impl<T: ANDAddressMode> Instruction for AND<T> {
     let value = self.0.read(memory, registers);
 
     registers.acc.value &= value;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -75,6 +79,8 @@ impl<T: ASLAddressMode> Instruction for ASL<T> {
     let value = self.0.read(memory, registers);
     let shifted = value << 1;
     self.0.write(memory, registers, shifted);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -90,85 +96,104 @@ impl<T: BITAddressMode> Instruction for BIT<T> {
     registers.flags.zero = (value & registers.acc.value) == 0;
     registers.flags.negative = (value & (1 << 7)) != 0;
     registers.flags.overflow = (value & (1 << 6)) != 0;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
-pub(crate) struct BPL(pub u8);
+pub(crate) struct BPL(pub i8);
 impl Instruction for BPL {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if !registers.flags.negative {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BMI(pub u8);
+pub(crate) struct BMI(pub i8);
 impl Instruction for BMI {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if registers.flags.negative {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BVC(pub u8);
+pub(crate) struct BVC(pub i8);
 impl Instruction for BVC {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if !registers.flags.overflow {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BVS(pub u8);
+pub(crate) struct BVS(pub i8);
 impl Instruction for BVS {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if registers.flags.overflow {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BCC(pub u8);
+pub(crate) struct BCC(pub i8);
 impl Instruction for BCC {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if registers.flags.carry {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BCS(pub u8);
+pub(crate) struct BCS(pub i8);
 impl Instruction for BCS {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if !registers.flags.carry {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BNE(pub u8);
+pub(crate) struct BNE(pub i8);
 impl Instruction for BNE {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if !registers.flags.zero {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BEQ(pub u8);
+pub(crate) struct BEQ(pub i8);
 impl Instruction for BEQ {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 2;
     if registers.flags.zero {
-      // TODO
+      let target = registers.pc.value as i16 + self.0 as i16;
+      registers.pc.value = target as u16;
     }
   }
 }
 
-pub(crate) struct BRK(pub u8);
+pub(crate) struct BRK;
 impl Instruction for BRK {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    // TODO: Interupt
+    registers.pc.value += 1;
   }
 }
 
@@ -192,6 +217,8 @@ impl<T: CMPAddressMode> Instruction for CMP<T> {
     registers.flags.carry = test >= 0;
     registers.flags.zero = test == 0;
     registers.flags.negative = test < 0;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -210,6 +237,8 @@ impl<T: CPXAddressMode> Instruction for CPX<T> {
     registers.flags.carry = test >= 0;
     registers.flags.zero = test == 0;
     registers.flags.negative = test < 0;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -228,6 +257,8 @@ impl<T: CPYAddressMode> Instruction for CPY<T> {
     registers.flags.carry = test >= 0;
     registers.flags.zero = test == 0;
     registers.flags.negative = test < 0;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -242,6 +273,8 @@ impl<T: DECAddressMode> Instruction for DEC<T> {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
     let value = self.0.read(memory, registers);
     self.0.write(memory, registers, value - 1);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -263,6 +296,8 @@ impl<T: EORAddressMode> Instruction for EOR<T> {
     let result = value ^ registers.acc.value;
 
     self.0.write(memory, registers, result);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -270,6 +305,8 @@ pub(crate) struct CLC;
 impl Instruction for CLC {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.carry = false;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -277,6 +314,8 @@ pub(crate) struct SEC;
 impl Instruction for SEC {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.carry = true;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -284,6 +323,8 @@ pub(crate) struct CLI;
 impl Instruction for CLI {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.interrupt_disable = false;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -291,6 +332,8 @@ pub(crate) struct SEI;
 impl Instruction for SEI {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.interrupt_disable = true;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -298,6 +341,8 @@ pub(crate) struct CLV;
 impl Instruction for CLV {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.overflow = false;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -305,6 +350,8 @@ pub(crate) struct CLD;
 impl Instruction for CLD {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.decimal_mode = false;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -312,6 +359,8 @@ pub(crate) struct SED;
 impl Instruction for SED {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.flags.decimal_mode = true;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -326,20 +375,26 @@ impl<T: INCAddressMode> Instruction for INC<T> {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
     let value = self.0.read(memory, registers);
     self.0.write(memory, registers, value + 1);
+
+    registers.pc.value += 1;
   }
 }
 
-pub(crate) struct JMP;
-impl Instruction for JMP {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
-    // TODO
+pub(crate) trait JMPAddressMode: JumpMode {}
+impl JMPAddressMode for Absolute {}
+impl JMPAddressMode for Indirect {}
+
+pub(crate) struct JMP<T: JMPAddressMode>(pub T);
+impl<T: JMPAddressMode> Instruction for JMP<T> {
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value = self.0.dest(memory);
   }
 }
 
-pub(crate) struct JSR;
+pub(crate) struct JSR(u16);
 impl Instruction for JSR {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value = self.0;
   }
 }
 
@@ -359,6 +414,8 @@ impl<T: LDAAddressMode> Instruction for LDA<T> {
     let value = self.0.read(memory, registers);
 
     registers.acc.value = value;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -375,6 +432,8 @@ impl<T: LDXAddressMode> Instruction for LDX<T> {
     let value = self.0.read(memory, registers);
 
     registers.x.value = value;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -391,6 +450,8 @@ impl<T: LDYAddressMode> Instruction for LDY<T> {
     let value = self.0.read(memory, registers);
 
     registers.y.value = value;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -407,12 +468,16 @@ impl<T: LSRAddressMode> Instruction for LSR<T> {
     let value = self.0.read(memory, registers);
     let shifted = value >> 1;
     self.0.write(memory, registers, shifted);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
 pub(crate) struct NOP;
 impl Instruction for NOP {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {}
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+    registers.pc.value += 1;
+  }
 }
 
 pub(crate) trait ORAAddressMode: AddressMode {}
@@ -433,6 +498,8 @@ impl<T: ORAAddressMode> Instruction for ORA<T> {
     let ored = value | registers.acc.value;
 
     self.0.write(memory, registers, ored);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -440,6 +507,8 @@ pub(crate) struct TAX;
 impl Instruction for TAX {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.x.value = registers.acc.value;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -447,6 +516,8 @@ pub(crate) struct TXA;
 impl Instruction for TXA {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.acc.value = registers.x.value;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -454,6 +525,8 @@ pub(crate) struct DEX;
 impl Instruction for DEX {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.x.value -= 1;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -461,6 +534,8 @@ pub(crate) struct INX;
 impl Instruction for INX {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.x.value += 1;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -468,6 +543,8 @@ pub(crate) struct TAY;
 impl Instruction for TAY {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.y.value = registers.acc.value;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -475,6 +552,8 @@ pub(crate) struct TYA;
 impl Instruction for TYA {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.acc.value = registers.y.value;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -482,6 +561,8 @@ pub(crate) struct DEY;
 impl Instruction for DEY {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.y.value -= 1;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -489,6 +570,8 @@ pub(crate) struct INY;
 impl Instruction for INY {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     registers.y.value += 1;
+
+    registers.pc.value += 1;
   }
 }
 
@@ -507,6 +590,8 @@ impl<T: ROLAddressMode> Instruction for ROL<T> {
     let rotated = value.rotate_left(1);
 
     self.0.write(memory, registers, rotated);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -525,20 +610,24 @@ impl<T: RORAddressMode> Instruction for ROR<T> {
     let rotated = value.rotate_right(1);
 
     self.0.write(memory, registers, rotated);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
 pub(crate) struct RTI;
 impl Instruction for RTI {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct RTS;
 impl Instruction for RTS {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
@@ -558,6 +647,8 @@ impl<T: SBCAddressMode> Instruction for SBC<T> {
     let value = self.0.read(memory, registers);
 
     registers.acc.value -= value;
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -574,48 +665,56 @@ pub(crate) struct STA<T: STAAddressMode>(pub T);
 impl<T: STAAddressMode> Instruction for STA<T> {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
     self.0.write(memory, registers, registers.acc.value);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
 pub(crate) struct TXS;
 impl Instruction for TXS {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct TSX;
 impl Instruction for TSX {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct PHA;
 impl Instruction for PHA {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct PLA;
 impl Instruction for PLA {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct PHP;
 impl Instruction for PHP {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
 pub(crate) struct PLP;
 impl Instruction for PLP {
-  fn evaluate(&self, _memory: &mut Memory, _registers: &mut Registers) {
+  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
     // TODO
+    registers.pc.value += 1;
   }
 }
 
@@ -628,6 +727,8 @@ pub(crate) struct STX<T: STXAddressMode>(pub T);
 impl<T: STXAddressMode> Instruction for STX<T> {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
     self.0.write(memory, registers, registers.x.value);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }
 
@@ -640,5 +741,7 @@ pub(crate) struct STY<T: STYAddressMode>(pub T);
 impl<T: STYAddressMode> Instruction for STY<T> {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
     self.0.write(memory, registers, registers.y.value);
+
+    registers.pc.value += 1 + T::LENGTH;
   }
 }

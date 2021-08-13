@@ -33,6 +33,6 @@ println!("{}", registers);
 - [x] Registers
 - [x] Basic Instructions
 - [ ] Stack Instructions
-- [ ] Branch Instructions
+- [x] Branch Instructions
 - [ ] Flags
 - [ ] Binary Mode
