@@ -35,4 +35,4 @@ println!("{}", registers);
 - [ ] Stack Instructions
 - [x] Branch Instructions
 - [ ] Flags
-- [ ] Binary Mode
+- [x] Binary Mode (Not required)

@@ -1,6 +1,5 @@
 #![allow(clippy::upper_case_acronyms)]
 // TODO: Handling of flags
-// TODO: Binary mode
 
 use crate::memory::Memory;
 use crate::registers::Registers;
