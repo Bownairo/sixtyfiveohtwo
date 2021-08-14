@@ -1570,8 +1570,13 @@ impl Renderable for STA<IndirectIndexed> {
 
 pub(crate) struct TXS;
 impl Instruction for TXS {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    memory.absolute_write(
+      u16::from_le_bytes([0x01, registers.sp.value]),
+      registers.x.value as u8,
+    );
+    registers.sp.value -= 1;
+
     registers.pc.value += 1;
   }
 }
@@ -1584,8 +1589,11 @@ impl Renderable for TXS {
 
 pub(crate) struct TSX;
 impl Instruction for TSX {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    registers.x.value =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 1])) as i8;
+    registers.sp.value += 1;
+
     registers.pc.value += 1;
   }
 }
@@ -1598,8 +1606,13 @@ impl Renderable for TSX {
 
 pub(crate) struct PHA;
 impl Instruction for PHA {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    memory.absolute_write(
+      u16::from_le_bytes([0x01, registers.sp.value]),
+      registers.acc.value as u8,
+    );
+    registers.sp.value -= 1;
+
     registers.pc.value += 1;
   }
 }
@@ -1612,8 +1625,11 @@ impl Renderable for PHA {
 
 pub(crate) struct PLA;
 impl Instruction for PLA {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    registers.acc.value =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 1])) as i8;
+    registers.sp.value += 1;
+
     registers.pc.value += 1;
   }
 }
@@ -1626,8 +1642,13 @@ impl Renderable for PLA {
 
 pub(crate) struct PHP;
 impl Instruction for PHP {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    // memory.absolute_write(
+    //   u16::from_le_bytes([0x01, registers.sp.value]),
+    //   registers.flags.value as u8,
+    // );
+    registers.sp.value -= 1;
+
     registers.pc.value += 1;
   }
 }
@@ -1641,7 +1662,10 @@ impl Renderable for PHP {
 pub(crate) struct PLP;
 impl Instruction for PLP {
   fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+    // registers.flags.value =
+    //   memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 1])) as i8;
+    registers.sp.value += 1;
+
     registers.pc.value += 1;
   }
 }

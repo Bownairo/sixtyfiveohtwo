@@ -47,10 +47,15 @@ impl Register for ProgramCounter {
   }
 }
 
-#[derive(Default)]
 pub(crate) struct StackPointer {
   pub value: u8,
 }
+impl Default for StackPointer {
+  fn default() -> Self {
+    StackPointer { value: 0xFF }
+  }
+}
+
 impl Register for StackPointer {
   fn raw(&self) -> u16 {
     self.value as u16

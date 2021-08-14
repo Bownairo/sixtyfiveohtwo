@@ -32,7 +32,7 @@ println!("{}", registers);
 - [x] Memory Access
 - [x] Registers
 - [x] Basic Instructions
-- [ ] Stack Instructions
+- [x] Stack Instructions
 - [x] Branch Instructions
 - [ ] Flags
 - [x] Binary Mode (Not required)
