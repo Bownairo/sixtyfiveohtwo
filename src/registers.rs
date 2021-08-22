@@ -140,3 +140,21 @@ impl Register for Flags {
     output
   }
 }
+
+impl Flags {
+  pub(crate) fn write(&mut self, mut value: u8) {
+    self.negative = (value & 1) != 0;
+    value >>= 1;
+    self.overflow = (value & 1) != 0;
+    value >>= 1;
+    self.break_command = (value & 1) != 0;
+    value >>= 1;
+    self.decimal_mode = (value & 1) != 0;
+    value >>= 1;
+    self.interrupt_disable = (value & 1) != 0;
+    value >>= 1;
+    self.zero = (value & 1) != 0;
+    value >>= 1;
+    self.carry = (value & 1) != 0;
+  }
+}

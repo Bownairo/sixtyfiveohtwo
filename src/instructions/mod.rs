@@ -1417,8 +1417,10 @@ impl Renderable for ROR<AbsoluteX> {
 pub(crate) struct RTI;
 impl Instruction for RTI {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
-    // registers.flags.value = memory
-    //   .absolute(u16::from_le_bytes([0x01, registers.sp.value + 1]));
+    registers.flags.write(
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 1])),
+    );
+
     let first =
       memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 2]));
     let second =
@@ -1664,10 +1666,12 @@ impl Renderable for PLA {
 pub(crate) struct PHP;
 impl Instruction for PHP {
   fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
-    // memory.absolute_write(
-    //   u16::from_le_bytes([0x01, registers.sp.value]),
-    //   registers.flags.value as u8,
-    // );
+    use crate::registers::Register;
+
+    memory.absolute_write(
+      u16::from_le_bytes([0x01, registers.sp.value]),
+      registers.flags.raw() as u8,
+    );
     registers.sp.value -= 1;
 
     registers.pc.value += 1;
