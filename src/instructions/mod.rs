@@ -856,7 +856,16 @@ impl Renderable for JMP<Indirect> {
 
 pub(crate) struct JSR(u16);
 impl Instruction for JSR {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    let addr = (registers.pc.value + 2).to_le_bytes();
+    memory
+      .absolute_write(u16::from_le_bytes([0x01, registers.sp.value]), addr[0]);
+    memory.absolute_write(
+      u16::from_le_bytes([0x01, registers.sp.value - 1]),
+      addr[1],
+    );
+    registers.sp.value -= 2;
+
     registers.pc.value = self.0;
   }
 }
@@ -1407,9 +1416,15 @@ impl Renderable for ROR<AbsoluteX> {
 
 pub(crate) struct RTI;
 impl Instruction for RTI {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
-    registers.pc.value += 1;
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    // registers.flags.value = memory
+    //   .absolute(u16::from_le_bytes([0x01, registers.sp.value + 1]));
+    let first =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 2]));
+    let second =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 3]));
+    registers.pc.value = u16::from_le_bytes([first, second]);
+    registers.sp.value += 3;
   }
 }
 
@@ -1421,8 +1436,14 @@ impl Renderable for RTI {
 
 pub(crate) struct RTS;
 impl Instruction for RTS {
-  fn evaluate(&self, _memory: &mut Memory, registers: &mut Registers) {
-    // TODO
+  fn evaluate(&self, memory: &mut Memory, registers: &mut Registers) {
+    let first =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 1]));
+    let second =
+      memory.absolute(u16::from_le_bytes([0x01, registers.sp.value + 2]));
+    registers.pc.value = u16::from_le_bytes([first, second]);
+    registers.sp.value += 2;
+
     registers.pc.value += 1;
   }
 }
