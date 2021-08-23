@@ -3,6 +3,7 @@ mod memory;
 mod registers;
 
 use instructions::addressing::*;
+use instructions::interp::interp;
 use instructions::{Instruction, ADC, ASL, INY, LDA, LDX, LDY, STX, TAX};
 
 fn main() {
@@ -23,6 +24,9 @@ fn main() {
     LDY(AbsoluteX(99)), // LDY $99,X
     INY                 // INY
   );
+
+  // Use this function to avoid clippy complaints
+  let _ = interp(&memory, 0x00);
 
   println!("{}", registers);
 }
